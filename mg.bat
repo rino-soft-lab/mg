@@ -874,20 +874,21 @@ echo.
 if not "%REPLY%"=="1" (goto :eof)
 call :Righted "Когда будет закрыт мастер установки, работа скрипта продолжится... "
 echo.
-%~dp0%DDM-FILE%
-del /F /Q "%~dp0%DDM-FILE%"
+"%~dp0%MMD-FILE%"
+del /F /Q "%~dp0%MMD-FILE%"
 goto :eof
 
 :Save-Config
 if exist "%CFG-FILE%" del /F /Q %CFG-FILE%
-set "VARS-LIST=LOCAL-VER MODEL-NAME BLD-NUM-EX COM-URL SOURCES CH1-NAME CH1-URL CH1-INFO CH2-NAME CH2-URL CH2-INFO CH3-NAME CH3-URL CH3-INFO CH4-NAME CH4-URL CH4-INFO CH5-NAME CH5-URL CH5-INFO CH6-NAME CH6-URL CH6-INFO CH7-NAME CH7-URL CH7-INFO CH8-NAME CH8-URL CH8-INFO CH9-NAME CH9-URL CH9-INFO OFFLINE-CH GLOBAL-VER MMD-FILE MMD-URL MMD-ALT MMD-PATH MFP-FILE MFP-URL MFP-ALT MFP-PATH SDK-FILE SDK-URL SDK-ALT SDK-PATH FRW-NAME MOTO-LGN-URL MOTO-UNL-URL"
+set "VARS-LIST=LOCAL-VER MODEL-NAME BLD-NUM-EX COM-URL SOURCES CH1-NAME CH1-URL CH1-INFO CH2-NAME CH2-URL CH2-INFO CH3-NAME CH3-URL CH3-INFO CH4-NAME CH4-URL CH4-INFO CH5-NAME CH5-URL CH5-INFO CH6-NAME CH6-URL CH6-INFO CH7-NAME CH7-URL CH7-INFO CH8-NAME CH8-URL CH8-INFO CH9-NAME CH9-URL CH9-INFO OFFLINE-CH GLOBAL-VER MMD-FILE32 MMD-FILE64 MMD-URL32 MMD-URL64 MMD-ALT MMD-PATH MFP-FILE MFP-URL MFP-ALT MFP-PATH SDK-FILE SDK-URL SDK-ALT SDK-PATH FRW-NAME MOTO-LGN-URL MOTO-UNL-URL"
 setlocal enabledelayedexpansion
 for %%v in (%VARS-LIST%) do (echo %%v=!%%v!>>"%~dp0%CFG-FILE%")
 endlocal
 goto :eof
 
 :Load-Config
-for /f "usebackq delims=" %%c in ("%~dp0%~1") do set "%%c"
+for /f "usebackq delims=" %%c in ("%~1") do set "%%c"
+if "%PROCESSOR_ARCHITECTURE%"=="x86" (set "MMD-URL=%MMD-URL32%" & set "MMD-FILE=%MMD-FILE32%") else (set "MMD-URL=%MMD-URL64%" & set "MMD-FILE=%MMD-FILE64%")
 goto :eof
 
 :Load-Config-Error
@@ -907,17 +908,6 @@ set /p REPLY="Ваш выбор: "
 echo.
 color 0F
 if "%REPLY%"=="1" (goto Need-Config) else (goto To-Exit)
-
-:Need-MMD
-echo.  Для работы понадобится Motorola Mobile Drivers...
-echo.
-call :Need %LOCAL-PATH% %MMD-FILE% %MMD-URL%
-:MMD-Errors
-if "%REPLY%"=="download-error" (del /F /Q "%~dp0%MMD-FILE%" & call :HeadLine "ОШИБКА" error & call :Download-Error %LOCAL-PATH% %MMD-FILE% %MMD-URL% %MMD-ALT% & goto MMD-Errors)
-if "%REPLY%"=="unpack-error" (call :HeadLine "ОШИБКА" error & call :Unpack-Error %LOCAL-PATH% %MMD-FILE% %MMD-URL% & goto MMD-Errors)
-if "%REPLY%"=="main.menu" (goto Main)
-if "%REPLY%"=="run.msi" (call :Righted "Когда будет закрыт мастер установки, работа скрипта продолжится... " & echo. & "%~dp0%MMD-FILE%")
-goto Software
 
 :Need-Config
 echo.  Формирование файла конфигурации...

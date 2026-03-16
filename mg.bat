@@ -1,10 +1,10 @@
 chcp 65001
 @echo off
 :Load
-set "VERSION=2603.1"
+set "VERSION=2603.2"
 set "CFG-URL="
 set "CFG-FILE=mg.cfg"
-set "GLB-URL="
+set "GLB-URL=https://raw.githubusercontent.com/rino-soft-lab/mg/refs/heads/main/configs/global.cfg"
 if not exist "%~dp0agreement.txt" (goto Agreement)
 if exist "%~dp0%CFG-FILE%" (call :Load-Config %CFG-FILE%) else (goto Need-Config)
 if "%LOCAL-VER%"=="" (goto Load-Config-Error)
@@ -223,7 +223,7 @@ if "%REPLY%"=="2" (goto Custom-Channel) else (if "%REPLY%"=="0" (goto Main) else
 
 :Custom-Channel
 call :Enter
-if not "%CUSTOM-CH%"=="" (goto Browser-Unpack) else (goto Channel-And-Frameware)
+if not "%CUSTOM-CH%"=="" (call :Stringer & goto Browser-Unpack) else (goto Channel-And-Frameware)
 
 :Enter
 echo.  Обратите внимание:
@@ -234,6 +234,13 @@ echo.
 set "CUSTOM-CH="
 set /p CUSTOM-CH="Название канала: "
 echo.
+goto :eof
+
+:Stringer
+setlocal enabledelayedexpansion
+set "REPLY=%CUSTOM-CH%"
+for %%c in (a b c d e f g h i j k l m n o p q r s t u v w x y z) do (set "REPLY=!REPLY:%%c=%%c!")
+endlocal & set "CUSTOM-CH=%REPLY%"
 goto :eof
 
 :Browser
@@ -349,8 +356,9 @@ if "%REPLY%"=="0" (goto Main) else (goto Device-Connect)
 set "REPLY="
 set /p REPLY=<"%~dp0temp.tmp"
 del /F /Q "%~dp0temp.tmp"
-if "%REPLY%"=="" (goto Device-Connect-Error) else (if "%MODE%"=="channel" (goto Channel-Enter))
+if "%REPLY%"=="" (goto Device-Connect-Error)
 %SDK-PATH%\fastboot getvar all>"%~dp0getvar_all.txt" 2>&1
+if "%MODE%"=="channel" (goto Channel-Enter)
 call :Get-Line "getvar_all.txt" "securestate: "
 if "%REPLY%"=="oem_lock" (goto Device-Unlock) else (if "%REPLY%"=="flashing_unlocked" (if "%MODE%"=="unlock" (goto Device-Unlocked) else (goto Device-Flashing)) else (if "%REPLY%"=="flashing_locked" (goto Device-Warning) else (goto Device-Unlock-Error)))
 
@@ -608,6 +616,7 @@ echo.  Введите новое название канала.
 echo.
 call :Enter
 if "%CUSTOM-CH%"=="" (if "%MODE%"=="channel" (goto Channel-Only) else (goto Device-Channel))
+call :Stringer
 :Channel-Set
 call :Get-By-Index "CH" "-NAME"
 :Channel-Check
